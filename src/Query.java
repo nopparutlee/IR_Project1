@@ -6,7 +6,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,8 +44,8 @@ public class Query {
 			throws IOException {
 		/*
 		 * TODO: Your code here
-		 * by Earth 
-		 * DON'T DO ANYTHING INSIDE THIS METHOD
+		 * DONE by Earth 
+		 * 
 		 */
 
 		//Step 1: Find the corresponding postingList is posting.dict that has the same termID as termId
@@ -53,7 +55,7 @@ public class Query {
 			Set<Integer> posDictKeys = posDict.keySet();
 			for(Integer termIDkey : posDictKeys) {
 				
-				if(termID = termIDkey) { positionInCorpus = posDict.get(termIDkey); }
+				if(termID == termIDkey) { positionInCorpus = posDict.get(termIDkey); }
 				
 			}
 			
@@ -63,21 +65,37 @@ public class Query {
 			Set<Integer> freqDictKeys = freqDict.keySet();
 			for(Integer freqIDkey : freqDictKeys) {
 				
-				if(termID == freqIDkey) { docFrequency = freqDict.get(freqIDkey)
+				if(termID == freqIDkey) { docFrequency = freqDict.get(freqIDkey); }
 			}
 		
 		
 		//Step 2: From the correspodning positingList, use termPos to set FileChannel's position in corpus.index
-		fc.position()
+		fc.position(positionInCorpus);
 		
 		
 		//Step 3: From corpus.index, read the <termID, DocFreq, {DocIDs}> tuple into the ByteBuffer (size = 4+4+(4*DocFreq)}
-		int byteBufferSize = 4+4+(4*docFrequency);	//Size of ByteBuffer for storing readed content from corpus.index
-		ByteBuffer corpusBuffer = 
+		int numberOfBytes = 4+4+(4*docFrequency);				//Size of byte array to keep the byte read f
+		byte arr[] = new byte[numberOfBytes];
 		
+		ArrayList<Integer> decimal = new ArrayList<Integer>();	//ArrayList to keep the converted byte numbers
 		
+		fc.read(arr); 											//Read the byte numbers into the array.
+		ByteBuffer byteBuffer = ByteBuffer.wrap(arr);			//Wrap the array into byteBuffer
+		
+		while(byteBuffer.hasRemaining()) {
+			
+			decimal.add(byteBuffer.getInt());					//Store the values from byteBuffer in decimal format (4 byte / 1 decimal)
+		}
+
 		//Step 4: Instantiate new PostingList using termID and {DocIDs}
+		int i;
+		
 		List<Integer> docIDs = new ArrayList<Integer>();
+		
+		for(i=1;i<decimal.size();i++) {
+			docIDs.add(decimal.get(i));
+		}
+		
 		PostingList newPosting = new PostingList(termId, docIDs);
 		
 		//Step 5: Return the instantiated PostingList to user
