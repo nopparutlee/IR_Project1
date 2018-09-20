@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
@@ -61,7 +62,6 @@ public class Index {
 		 * TODO: Your code here
 		 *	 
 		 */
-		
 	}
 	
 
@@ -118,10 +118,19 @@ public class Index {
 		}
 		
 		/*	TODO: delete all the files/sub folder under outdir
-		 * 
+		 *  DONE by Earth
 		 */
-		
-		
+		Path outputPath = Paths.get(outputDirname);
+		if (outdir.isDirectory(outputPath, LinkOption.NOFOLLOW_LINKS)) {
+			
+			try (DirectoryStream<Path> entries = Files.newDirectoryStream(outputPath)){
+				for (Path entry : entries) {
+					deleteDirectoryRecursion(entry);
+				}
+			}
+			
+		}
+			
 		if (!outdir.exists()) {
 			if (!outdir.mkdirs()) {
 				System.err.println("Create output directory failure");

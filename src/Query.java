@@ -42,8 +42,46 @@ public class Query {
 			throws IOException {
 		/*
 		 * TODO: Your code here
+		 * by Earth 
+		 * DON'T DO ANYTHING INSIDE THIS METHOD
 		 */
-		return null;
+
+		//Step 1: Find the corresponding postingList is posting.dict that has the same termID as termId
+		
+			//Find the term index position from the corresponding termID in posDict
+			Long positionInCorpus;	//Term position in the corpus.index
+			Set<Integer> posDictKeys = posDict.keySet();
+			for(Integer termIDkey : posDictKeys) {
+				
+				if(termID = termIDkey) { positionInCorpus = posDict.get(termIDkey); }
+				
+			}
+			
+			//Find the document frequency from the corresponding termID in freqDict
+			int docFrequency = 0;						//Number of documents that the term appears in
+			
+			Set<Integer> freqDictKeys = freqDict.keySet();
+			for(Integer freqIDkey : freqDictKeys) {
+				
+				if(termID == freqIDkey) { docFrequency = freqDict.get(freqIDkey)
+			}
+		
+		
+		//Step 2: From the correspodning positingList, use termPos to set FileChannel's position in corpus.index
+		fc.position()
+		
+		
+		//Step 3: From corpus.index, read the <termID, DocFreq, {DocIDs}> tuple into the ByteBuffer (size = 4+4+(4*DocFreq)}
+		int byteBufferSize = 4+4+(4*docFrequency);	//Size of ByteBuffer for storing readed content from corpus.index
+		ByteBuffer corpusBuffer = 
+		
+		
+		//Step 4: Instantiate new PostingList using termID and {DocIDs}
+		List<Integer> docIDs = new ArrayList<Integer>();
+		PostingList newPosting = new PostingList(termId, docIDs);
+		
+		//Step 5: Return the instantiated PostingList to user
+		return newPosting;
 	}
 	
 	
