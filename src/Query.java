@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class Query {
@@ -110,8 +111,7 @@ public class Query {
 			Class<?> indexClass = Class.forName(indexMode+"Index");
 			index = (BaseIndex) indexClass.newInstance();
 		} catch (Exception e) {
-			System.err
-					.println("Index method must be \"Basic\", \"VB\", or \"Gamma\"");
+			System.err.println("Index method must be \"Basic\", \"VB\", or \"Gamma\"");
 			throw new RuntimeException(e);
 		}
 		
@@ -119,17 +119,15 @@ public class Query {
 		File inputdir = new File(indexDirname);
 		if (!inputdir.exists() || !inputdir.isDirectory()) {
 			System.err.println("Invalid index directory: " + indexDirname);
-			return;
+			//return;
 		}
 		
 		/* Index file */
-		indexFile = new RandomAccessFile(new File(indexDirname,
-				"corpus.index"), "r");
+		indexFile = new RandomAccessFile(new File(indexDirname, "corpus.index"), "r");
 
 		String line = null;
 		/* Term dictionary */
-		BufferedReader termReader = new BufferedReader(new FileReader(new File(
-				indexDirname, "term.dict")));
+		BufferedReader termReader = new BufferedReader(new FileReader(new File(indexDirname, "term.dict")));
 		while ((line = termReader.readLine()) != null) {
 			String[] tokens = line.split("\t");
 			termDict.put(tokens[0], Integer.parseInt(tokens[1]));
@@ -137,8 +135,7 @@ public class Query {
 		termReader.close();
 
 		/* Doc dictionary */
-		BufferedReader docReader = new BufferedReader(new FileReader(new File(
-				indexDirname, "doc.dict")));
+		BufferedReader docReader = new BufferedReader(new FileReader(new File(indexDirname, "doc.dict")));
 		while ((line = docReader.readLine()) != null) {
 			String[] tokens = line.split("\t");
 			docDict.put(Integer.parseInt(tokens[1]), tokens[0]);
@@ -146,13 +143,11 @@ public class Query {
 		docReader.close();
 
 		/* Posting dictionary */
-		BufferedReader postReader = new BufferedReader(new FileReader(new File(
-				indexDirname, "posting.dict")));
+		BufferedReader postReader = new BufferedReader(new FileReader(new File(indexDirname, "posting.dict")));
 		while ((line = postReader.readLine()) != null) {
 			String[] tokens = line.split("\t");
 			posDict.put(Integer.parseInt(tokens[0]), Long.parseLong(tokens[1]));
-			freqDict.put(Integer.parseInt(tokens[0]),
-					Integer.parseInt(tokens[2]));
+			freqDict.put(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[2]));
 		}
 		postReader.close();
 		
@@ -169,8 +164,40 @@ public class Query {
 		 * TODO: Your code here
 		 *       Perform query processing with the inverted index.
 		 *       return the list of IDs of the documents that match the query
-		 *      
+		 * by Earth (Not Finished Yet. DON'T DO ANYTHING IN THIS METHOD)
 		 */
+		
+		String[] tokens = query.split(" ");	//Split the input query into tokens using white space as seperator
+		
+		//Step 1: Find the term ID of the tokens 
+		
+		Set<Integer> tokensTermID = new Set<Integer>(); //For storing the termID that will be used to retrieve the right postingList
+		
+		Set<String> termDictKeys = termDict.keySet();	//Get the set of keys from termDict Map
+
+		for(String token : tokens) {
+				for(String termDictKey : termDictKeys) {
+					if(token.equals(termDictKey)) {
+						tokensTermID.add(termDict.get(termDictKey));	//Add the termID of the token into the tokensTermID
+					}
+				}
+		}
+		
+		//Step 1.5: Check first if all the terms have corresponding termID
+		if(tokensTermID.size() < tokens.length) {
+			System.err.print("Error: One of the search queries doesn't exist.");
+		}
+		
+		//Step 2: Retrieve the posting lists of the tokens using termID
+		ArrayList<PostingList> postingLists = new ArrayList<PostingList>(); // Set that store the postingList of the term
+		
+		for(Integer tokenID : tokensTermID) {
+			FileChannel
+			postingLists.
+		}
+		
+		
+	
 		return null;
 		
 	}
@@ -194,7 +221,7 @@ public class Query {
 		 * 
          * */
     	
-    	return null;
+    	if(res.size() == 0) { return "No results found";}
     }
 	
 	public static void main(String[] args) throws IOException {
