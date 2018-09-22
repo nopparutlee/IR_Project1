@@ -75,13 +75,14 @@ public class Query {
 		
 		
 		//Step 3: From corpus.index, read the <termID, DocFreq, {DocIDs}> tuple into the ByteBuffer (size = 4+4+(4*DocFreq)}
-		int numberOfBytes = 4+4+(4*docFrequency);				//Size of byte array to keep the byte read f
-		byte arr[] = new byte[numberOfBytes];
+		int numberOfBytes = 4+4+(4*docFrequency);				//Size of byte array to keep the byte read 
 		
 		ArrayList<Integer> decimal = new ArrayList<Integer>();	//ArrayList to keep the converted byte numbers
+		ByteBuffer byteBuffer = new ByteBuffer();
+		bytebuffer.allocate(numberOfBytes);
 		
-		fc.read(arr); 											//Read the byte numbers into the array.
-		ByteBuffer byteBuffer = ByteBuffer.wrap(arr);			//Wrap the array into byteBuffer
+		fc.read(byteBuffer); 											//Read the byte numbers into the array.
+					//Wrap the array into byteBuffer
 		
 		while(byteBuffer.hasRemaining()) {
 			
