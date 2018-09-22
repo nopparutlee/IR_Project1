@@ -56,7 +56,7 @@ public class Query {
 			Set<Integer> posDictKeys = posDict.keySet();
 			for(Integer termIDkey : posDictKeys) {
 				
-				if(termID == termIDkey) { positionInCorpus = posDict.get(termIDkey); }
+				if(termId == termIDkey) { positionInCorpus = posDict.get(termIDkey); }
 				
 			}
 			
@@ -66,7 +66,7 @@ public class Query {
 			Set<Integer> freqDictKeys = freqDict.keySet();
 			for(Integer freqIDkey : freqDictKeys) {
 				
-				if(termID == freqIDkey) { docFrequency = freqDict.get(freqIDkey); }
+				if(termId == freqIDkey) { docFrequency = freqDict.get(freqIDkey); }
 			}
 		
 		
@@ -229,14 +229,14 @@ public class Query {
 	 **/
 	public List<Integer> intersect(PostingList List1, PostingList List2) {
 		
-		List<Integer> intersection = new List<Integer>();
+		List<Integer> intersection = new ArrayList<Integer>();
 		
 		int pointer1 = 0;
 		int pointer2 = 0;
 		
 		while(pointer1 < List1.getPostingLength() && pointer2 < List2.getPostingLength()) {
 			if(List1.getPostingID(pointer1) == List2.getPostingID(pointer2)) {
-				intersection.add(p1.getPostingID(pointer1));
+				intersection.add(List1.getPostingID(pointer1));
 				pointer1++;
 				pointer2++;
 			} else {
