@@ -154,7 +154,7 @@ public class Index {
 			File[] filelist = blockDir.listFiles();
 			
 			//posting list for writing into a corpus
-			ArrayList<PostingList> postingLists = new ArrayList<PostingList>();
+			ArrayList<PostingList> blockPostingLists = new ArrayList<PostingList>();
 			
 			/* For each file */
 			for (File file : filelist) {
@@ -178,13 +178,13 @@ public class Index {
 						 */
 						if(termDict.containsKey(token)){
 							int termId = termDict.get(token);
-							postingLists.get(termId).getList().add(docId);
+							blockPostingLists.get(termId).getList().add(docId);
 						}
 						else{
 							termDict.put(token, wordIdCounter);
 							List<Integer> tempList = new ArrayList<Integer>();
 							tempList.add(docId);
-							postingLists.add(new PostingList(wordIdCounter,tempList));
+							blockPostingLists.add(new PostingList(wordIdCounter++,tempList));
 						}
 					}
 				}
@@ -206,7 +206,7 @@ public class Index {
 			
 			FileChannel channel = bfc.getChannel();
 			
-			for(PostingList posting:postingLists){
+			for(PostingList posting:blockPostingLists){
 				writePosting(channel, posting);
 			}
 			
