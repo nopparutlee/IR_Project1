@@ -123,15 +123,16 @@ public class Index {
 		/*	TODO: delete all the files/sub folder under outdir
 		 *  DONE by Earth
 		 */
-		Path outputPath = Paths.get(outputDirname);
-		if (outdir.isDirectory(outputPath, LinkOption.NOFOLLOW_LINKS)) {
+		
+		try {
 			
-			try (DirectoryStream<Path> entries = Files.newDirectoryStream(outputPath)){
-				for (Path entry : entries) {
-					deleteDirectoryRecursion(entry);
+		} catch (Exception e) {
+			// TODO: handle exception
+			for (File dir: outdir.listFiles()) {
+				if(dir.exists()) {
+					dir.delete();
 				}
 			}
-			
 		}
 			
 		if (!outdir.exists()) {
