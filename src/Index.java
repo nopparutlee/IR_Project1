@@ -251,7 +251,66 @@ public class Index {
 			 *       the two blocks (based on term ID, perhaps?).
 			 *       
 			 */
-			
+			int file1termId = bf1.readInt();
+			int file2termId = bf2.readInt();
+			while(file1termId != -1 && file2termId != -1){
+				if(file1termId < file2termId){
+					int termFreq = bf1.readInt();
+					ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
+					termBuffer.putInt(file1termId);
+					termBuffer.putInt(termFreq);
+					for(int i=0;i<termFreq;i++){
+						int termDocId = bf1.readInt();
+						termBuffer.putInt(termDocId);
+					}
+					file1termId = bf1.readInt();
+				}
+				else if(file1termId > file2termId){
+					int termFreq = bf2.readInt();
+					ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
+					termBuffer.putInt(file2termId);
+					termBuffer.putInt(termFreq);
+					for(int i=0;i<termFreq;i++){
+						int termDocId = bf2.readInt();
+						termBuffer.putInt(termDocId);
+					}
+					file2termId = bf2.readInt();
+				}
+				else{ //case: same term ID
+					int termFreq1 = bf1.readInt();
+					int termFreq2 = bf2.readInt();
+					ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq1+termFreq2)*4);
+					termBuffer.putInt(file2termId);
+					termBuffer.putInt(termFreq1+termFreq2);
+					//merge doc ID
+					int termDocId1 = bf1.readInt();
+					int termDocId2 = bf2.readInt();
+					while(termFreq1 > 0 && termFreq2 > 0){
+						if(termDocId1 <= termDocId2){
+							termBuffer.putInt(termDocId1);
+							termDocId1 = bf1.readInt();
+							termFreq1--;
+						}
+						else{
+							termBuffer.putInt(termDocId2);
+							termDocId2 = bf1.readInt();
+							termFreq2--;
+						}
+					}
+					while(termFreq1 > 0){
+						termBuffer.putInt(termDocId1);
+						termDocId1 = bf1.readInt();
+						termFreq1--;
+					}
+					while(termFreq2 > 0){
+						termBuffer.putInt(termDocId2);
+						termDocId2 = bf2.readInt();
+						termFreq2--;
+					}
+					file1termId = bf1.readInt();
+					file2termId = bf2.readInt();
+				}
+			}
 			
 			
 			bf1.close();
