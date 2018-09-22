@@ -66,8 +66,8 @@ public class Index {
 		 *	 
 		 */
 		
-		/*index.writePosting(fc, posting);
-		postingDict.put(posting.getTermId(), new Pair<Long, Integer>(fc.position(), posting.getList().size()));*/
+		index.writePosting(fc, posting);
+		//postingDict.put(posting.getTermId(), new Pair<Long, Integer>(fc.position(), posting.getList().size()));
 	}
 	
 
