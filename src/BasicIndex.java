@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BasicIndex implements BaseIndex {
@@ -11,7 +12,29 @@ public class BasicIndex implements BaseIndex {
 		 * TODO: Your code here Read and return the postings list from the given
 		 * file.
 		 */
+		ByteBuffer Bbuffer = ByteBuffer.allocate(8);		//allocate for term id and document frequency
+		ArrayList<Integer> docId = new ArrayList<Integer>();
+		int termId = Bbuffer.getInt();
+		int docFreq = Bbuffer.getInt();
 
+		if(Bbuffer.hasRemaining() == true) {
+			
+			Bbuffer = ByteBuffer.allocate(docFreq*4);		//Since 1 doc id using int which have 4 bytes
+			try {
+				fc.read(Bbuffer);
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+			
+			Bbuffer.flip();									//reset pointer again
+			for(int i=0; i<docFreq; i++) {
+				docId.add(Bbuffer.getInt());
+			}
+			if(docId.isEmpty() == false) {
+				return new PostingList(termId, docId);
+			}
+		}
 		return null;
 	}
 
