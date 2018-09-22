@@ -56,7 +56,7 @@ public class Query {
 			Set<Integer> posDictKeys = posDict.keySet();
 			for(Integer termIDkey : posDictKeys) {
 				
-				if(termID == termIDkey) { positionInCorpus = posDict.get(termIDkey); }
+				if(termId == termIDkey) { positionInCorpus = posDict.get(termIDkey); }
 				
 			}
 			
@@ -66,7 +66,7 @@ public class Query {
 			Set<Integer> freqDictKeys = freqDict.keySet();
 			for(Integer freqIDkey : freqDictKeys) {
 				
-				if(termID == freqIDkey) { docFrequency = freqDict.get(freqIDkey); }
+				if(termId == freqIDkey) { docFrequency = freqDict.get(freqIDkey); }
 			}
 		
 		
