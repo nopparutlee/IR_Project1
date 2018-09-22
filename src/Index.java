@@ -48,6 +48,9 @@ public class Index {
 	private static int wordIdCounter = 0;
 	// Index
 	private static BaseIndex index = null;
+	
+	//added by Lee
+	private static int totalFreq = 0;
 
 	
 	/* 
@@ -63,8 +66,8 @@ public class Index {
 		 *	 
 		 */
 		
-		index.writePosting(fc, posting);
-		postingDict.put(posting.getTermId(), new Pair<Long, Integer>(fc.position(), posting.getList().size()));
+		/*index.writePosting(fc, posting);
+		postingDict.put(posting.getTermId(), new Pair<Long, Integer>(fc.position(), posting.getList().size()));*/
 	}
 	
 
@@ -81,7 +84,19 @@ public class Index {
         }
     }
 	
-    
+    //helper function, for managing postingDict stuff in merging part
+    /**
+     * Add termid and frequencyinto postingDict
+     * the pointer will be calculate here
+     * @param 	termId ID of the term adding
+     * 			freq frequency of document containing that term
+     */
+    private static void addTermAndFreqToPostingDict(int termId, int freq){
+    	Long byteOffset = (long) (totalFreq * 4);
+    	Pair<Long, Integer> temp = new Pair<Long, Integer>(byteOffset, freq);
+    	postingDict.put(termId, temp);
+    	totalFreq += freq;
+    }
    
 	
 	/**
@@ -265,7 +280,9 @@ public class Index {
 						int termDocId = bf1.readInt();
 						termBuffer.putInt(termDocId);
 					}
+					addTermAndFreqToPostingDict(file1termId, termFreq);
 					file1termId = bf1.readInt();
+					mf.write(termBuffer.array());
 				}
 				else if(file1termId > file2termId){
 					int termFreq = bf2.readInt();
@@ -276,7 +293,9 @@ public class Index {
 						int termDocId = bf2.readInt();
 						termBuffer.putInt(termDocId);
 					}
+					addTermAndFreqToPostingDict(file2termId, termFreq);
 					file2termId = bf2.readInt();
+					mf.write(termBuffer.array());
 				}
 				else{ //case: same term ID
 					int termFreq1 = bf1.readInt();
@@ -309,11 +328,38 @@ public class Index {
 						termDocId2 = bf2.readInt();
 						termFreq2--;
 					}
+					addTermAndFreqToPostingDict(file1termId, termFreq1+termFreq2);
 					file1termId = bf1.readInt();
 					file2termId = bf2.readInt();
+					mf.write(termBuffer.array());
 				}
 			}
-			
+			while(file1termId != -1){
+				int termFreq = bf1.readInt();
+				ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
+				termBuffer.putInt(file1termId);
+				termBuffer.putInt(termFreq);
+				for(int i=0;i<termFreq;i++){
+					int termDocId = bf1.readInt();
+					termBuffer.putInt(termDocId);
+				}
+				addTermAndFreqToPostingDict(file1termId, termFreq);
+				file1termId = bf1.readInt();
+				mf.write(termBuffer.array());
+			}
+			while(file2termId != -1){
+				int termFreq = bf2.readInt();
+				ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
+				termBuffer.putInt(file2termId);
+				termBuffer.putInt(termFreq);
+				for(int i=0;i<termFreq;i++){
+					int termDocId = bf2.readInt();
+					termBuffer.putInt(termDocId);
+				}
+				addTermAndFreqToPostingDict(file1termId, termFreq);
+				file2termId = bf2.readInt();
+				mf.write(termBuffer.array());
+			}
 			
 			bf1.close();
 			bf2.close();
