@@ -26,4 +26,14 @@ public class PostingList {
 	public List<Integer> getList() {
 		return this.postings;
 	}
+	
+	//Helper method: get the posting's length of this PostingLists by Earth :)
+	public int getPostingLength() {
+		return this.postings.size();
+	}
+	
+	//Helper method: get the docID's inside List<Integer> by Earth :)
+	public int getPostingID(int num) {
+		return this.postings.get(num);
+	}
 }
