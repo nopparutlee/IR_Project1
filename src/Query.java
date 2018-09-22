@@ -164,9 +164,9 @@ public class Query {
 		 * TODO: Your code here
 		 *       Perform query processing with the inverted index.
 		 *       return the list of IDs of the documents that match the query
-		 * by Earth (Not Finished Yet. DON'T DO ANYTHING IN THIS METHOD)
+		 * DONE by Earth
 		 */
-		
+		List<Integer> result = new List<Integer>();
 		String[] tokens = query.split(" ");	//Split the input query into tokens using white space as seperator
 		
 		//Step 1: Find the term ID of the tokens 
@@ -189,17 +189,66 @@ public class Query {
 		}
 		
 		//Step 2: Retrieve the posting lists of the tokens using termID
-		ArrayList<PostingList> postingLists = new ArrayList<PostingList>(); // Set that store the postingList of the term
+		List<PostingList> postingLists = new List<PostingList>(); // Set that store the postingList of the term
+		
 		
 		for(Integer tokenID : tokensTermID) {
-			FileChannel
-			postingLists.
+			private FileChannel fc = new FileChannel();
+			postingLists.add(this.readPosting(fc, tokenID));
 		}
 		
+		//Step 3: Intersect the retrieved postingLists using the intersect Helper method.
 		
+		int k=0;
+		while(k<postingLists.size()) {
+			
+			if(k == 0) {
+				//First iteration is intersection of postingList[0] and postingList[1] and store in result.
+				result = this.intersect(postingLists.get(k), postingLists.get(k+1));
+			} else {
+				//After first iteration, intersect the existing result with the next postingLists[...]
+				result = this.intersect(result, k+1);
+			}
+			k++;
+		}
 	
-		return null;
+		return result;
 		
+	}
+	
+	//Helper method: Posting Lists Boolean Intersection by Earth
+	
+	/**
+	 * This method will return the result of intersecting two posting lists.
+	 * 
+	 * Example: 
+	 * List 1: 1 2 5 8 10
+	 * List 2: 2 5 10
+	 * 
+	 * Result: 2 5 10
+	 **/
+	public List<Integer> intersect(PostingList List1, PostingList List2) {
+		
+		List<Integer> intersection = new List<Integer>();
+		
+		int pointer1 = 0;
+		int pointer2 = 0;
+		
+		while(pointer1 < List1.getPostingLength() && pointer2 < List2.getPostingLength()) {
+			if(List1.getPostingID(pointer1) == List2.getPostingID(pointer2)) {
+				intersection.add(p1.getPostingID(pointer1));
+				pointer1++;
+				pointer2++;
+			} else {
+				if(List1.getPostingID(pointer1) < List2.getPostingID(pointer2)) {
+					pointer1++;
+				} else {
+					pointer2++;
+				}
+			}
+		}
+		
+		return intersection;
 	}
 	
     String outputQueryResult(List<Integer> res) {
