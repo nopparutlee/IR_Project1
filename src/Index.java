@@ -62,6 +62,9 @@ public class Index {
 		 * TODO: Your code here
 		 *	 
 		 */
+		
+		index.writePosting(fc, posting);
+		postingDict.put(posting.getTermId(), new Pair<Long, Integer>(fc.position(), posting.getList().size()));
 	}
 	
 
@@ -212,11 +215,10 @@ public class Index {
 			
 			
 			/*by Ben
-			 * ByteBuffer buffer = ByteBuffer.allocate(2048);
+			 * ByteBuffer buffer = ByteBuffer.allocate(2048);*/
 			
 			
-			index.writePosting(buffer);
-			buffer.flip();*/
+			
 			
 			
 			

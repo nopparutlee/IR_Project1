@@ -269,8 +269,16 @@ public class Query {
 		 * no results found
 		 * 
          * */
+    	StringBuilder outQ = new StringBuilder();
+    	
+    	//by benn ja (to output the query)
     	
     	if(res.size() == 0) { return "No results found";}
+    	for(Integer i:res) {
+    		outQ.append(docDict.get(i));
+    	}
+    	System.out.println(outQ);
+    	return outQ.toString();
     }
 	
 	public static void main(String[] args) throws IOException {
