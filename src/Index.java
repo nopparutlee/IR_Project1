@@ -92,6 +92,8 @@ public class Index {
      * 			freq frequency of document containing that term
      */
     private static void addTermAndFreqToPostingDict(int termId, int freq){
+    	if(blockQueue.size() != 2)
+    		return;
     	Long byteOffset = (long) (totalFreq * 4);
     	Pair<Long, Integer> temp = new Pair<Long, Integer>(byteOffset, freq);
     	postingDict.put(termId, temp);
