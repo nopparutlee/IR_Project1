@@ -52,7 +52,7 @@ public class Query {
 		//Step 1: Find the corresponding postingList is posting.dict that has the same termID as termId
 		
 			//Find the term index position from the corresponding termID in posDict
-			Long positionInCorpus;	//Term position in the corpus.index
+			Long positionInCorpus = null;	//Term position in the corpus.index
 			Set<Integer> posDictKeys = posDict.keySet();
 			for(Integer termIDkey : posDictKeys) {
 				
@@ -78,8 +78,7 @@ public class Query {
 		int numberOfBytes = 4+4+(4*docFrequency);				//Size of byte array to keep the byte read 
 		
 		ArrayList<Integer> decimal = new ArrayList<Integer>();	//ArrayList to keep the converted byte numbers
-		ByteBuffer byteBuffer = new ByteBuffer();
-		bytebuffer.allocate(numberOfBytes);
+		ByteBuffer byteBuffer = ByteBuffer.allocate(numberOfBytes);
 		
 		fc.read(byteBuffer); 											//Read the byte numbers into the array.
 					//Wrap the array into byteBuffer
@@ -167,12 +166,12 @@ public class Query {
 		 *       return the list of IDs of the documents that match the query
 		 * DONE by Earth
 		 */
-		List<Integer> result = new List<Integer>();
+		List<Integer> result = new ArrayList<Integer>();
 		String[] tokens = query.split(" ");	//Split the input query into tokens using white space as seperator
 		
 		//Step 1: Find the term ID of the tokens 
 		
-		Set<Integer> tokensTermID = new Set<Integer>(); //For storing the termID that will be used to retrieve the right postingList
+		ArrayList<Integer> tokensTermID = new ArrayList<Integer>(); //For storing the termID that will be used to retrieve the right postingList
 		
 		Set<String> termDictKeys = termDict.keySet();	//Get the set of keys from termDict Map
 
@@ -190,11 +189,11 @@ public class Query {
 		}
 		
 		//Step 2: Retrieve the posting lists of the tokens using termID
-		List<PostingList> postingLists = new List<PostingList>(); // Set that store the postingList of the term
+		List<PostingList> postingLists = new ArrayList<PostingList>(); // Set that store the postingList of the term
 		
 		
 		for(Integer tokenID : tokensTermID) {
-			private FileChannel fc = new FileChannel();
+			private FileChannel fc = fc.open();
 			postingLists.add(this.readPosting(fc, tokenID));
 		}
 		
@@ -205,10 +204,10 @@ public class Query {
 			
 			if(k == 0) {
 				//First iteration is intersection of postingList[0] and postingList[1] and store in result.
-				result = this.intersect(postingLists.get(k), postingLists.get(k+1));
+				result = this.intersect(postingLists.get(k).getList(), postingLists.get(k+1).getList());
 			} else {
 				//After first iteration, intersect the existing result with the next postingLists[...]
-				result = this.intersect(result, k+1);
+				result = this.intersect(result, postingLists.get(k+1).getList());
 			}
 			k++;
 		}
