@@ -227,20 +227,20 @@ public class Query {
 	 * 
 	 * Result: 2 5 10
 	 **/
-	public List<Integer> intersect(PostingList List1, PostingList List2) {
+public ArrayList<Integer> intersect(List<Integer> postingList, List<Integer> postingList2) {
 		
-		List<Integer> intersection = new ArrayList<Integer>();
+		ArrayList<Integer> intersection = new ArrayList<Integer>();
 		
 		int pointer1 = 0;
 		int pointer2 = 0;
 		
-		while(pointer1 < List1.getPostingLength() && pointer2 < List2.getPostingLength()) {
-			if(List1.getPostingID(pointer1) == List2.getPostingID(pointer2)) {
-				intersection.add(List1.getPostingID(pointer1));
+		while(pointer1 < postingList.size() && pointer2 < postingList2.size()) {
+			if(postingList.get(pointer1) == postingList2.get(pointer2)) {
+				intersection.add(postingList.get(pointer1));
 				pointer1++;
 				pointer2++;
 			} else {
-				if(List1.getPostingID(pointer1) < List2.getPostingID(pointer2)) {
+				if(postingList.get(pointer1) < postingList2.get(pointer2)) {
 					pointer1++;
 				} else {
 					pointer2++;
