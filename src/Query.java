@@ -193,7 +193,7 @@ public class Query {
 		
 		
 		for(Integer tokenID : tokensTermID) {
-			private FileChannel fc = fc.open();
+			FileChannel fc = indexFile.getChannel();
 			postingLists.add(this.readPosting(fc, tokenID));
 		}
 		
