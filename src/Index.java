@@ -143,13 +143,14 @@ public class Index {
 		
 		try {
 			
-		} catch (Exception e) {
-			// TODO: handle exception
 			for (File dir: outdir.listFiles()) {
 				if(dir.exists()) {
 					dir.delete();
 				}
 			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println("error while trying to delete old files");
 		}
 			
 		if (!outdir.exists()) {
@@ -186,7 +187,6 @@ public class Index {
                 int docId = ++docIdCounter;
                 docDict.put(fileName, docId);
 				
-				
 				BufferedReader reader = new BufferedReader(new FileReader(file));
 				String line;
 				while ((line = reader.readLine()) != null) {
@@ -197,15 +197,24 @@ public class Index {
 						 *       For each term, build up a list of
 						 *       documents in which the term occurs
 						 */
+						//System.out.println("doc: "+docId+"term: "+ token);
 						if(termDict.containsKey(token)){
 							int termId = termDict.get(token);
-							blockPostingLists.get(termId).getList().add(docId);
+							//System.out.println("termID:"+termId);
+							if(!blockPostingLists.contains(termId)){
+								List<Integer> tempList = new ArrayList<Integer>();
+								tempList.add(docId);
+								blockPostingLists.add(new PostingList(termId, tempList));
+							}
+							else
+								blockPostingLists.get(termId).getList().add(docId);
 						}
 						else{
 							termDict.put(token, wordIdCounter);
 							List<Integer> tempList = new ArrayList<Integer>();
 							tempList.add(docId);
-							blockPostingLists.add(new PostingList(wordIdCounter++,tempList));
+							blockPostingLists.add(new PostingList(wordIdCounter,tempList));
+							wordIdCounter++;
 						}
 					}
 				}

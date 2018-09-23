@@ -52,6 +52,7 @@ public class BasicIndex implements BaseIndex {
 			for(Integer docId:pList){
 				postingBytes.putInt(docId);
 			}
+			postingBytes.flip();
 			fc.write(postingBytes);
 		} catch (IOException e) {
 			System.err
