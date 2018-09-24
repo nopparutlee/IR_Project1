@@ -17,7 +17,9 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -175,8 +177,9 @@ public class Index {
 			File blockDir = new File(dataDirname, block.getName());
 			File[] filelist = blockDir.listFiles();
 			
-			//posting list for writing into a corpus
-			ArrayList<PostingList> blockPostingLists = new ArrayList<PostingList>();
+			//posting Map for writing into a corpus
+			//<termId, Posting>
+			Map<Integer,PostingList> blockPostingLists = new TreeMap<Integer,PostingList>();
 			
 			/* For each file */
 			for (File file : filelist) {
@@ -201,19 +204,19 @@ public class Index {
 						if(termDict.containsKey(token)){
 							int termId = termDict.get(token);
 							System.out.println("termID:"+termId);
-							if(!blockPostingLists.contains(termId)){
+							if(!blockPostingLists.containsKey(termId)){
 								List<Integer> tempList = new ArrayList<Integer>();
 								tempList.add(docId);
-								blockPostingLists.add(new PostingList(termId, tempList));
+								blockPostingLists.put(termId,new PostingList(termId, tempList));
 							}
-							else
+							else if(!blockPostingLists.get(termId).getList().contains(docId))
 								blockPostingLists.get(termId).addDocId(docId);
 						}
 						else{
 							termDict.put(token, ++wordIdCounter);
 							List<Integer> tempList = new ArrayList<Integer>();
 							tempList.add(docId);
-							blockPostingLists.add(new PostingList(wordIdCounter,tempList));
+							blockPostingLists.put(wordIdCounter,new PostingList(wordIdCounter,tempList));
 						}
 					}
 				}
@@ -235,7 +238,7 @@ public class Index {
 			
 			FileChannel channel = bfc.getChannel();
 			
-			for(PostingList posting:blockPostingLists){
+			for(PostingList posting:blockPostingLists.values()){
 				writePosting(channel, posting);
 			}
 			
@@ -289,6 +292,10 @@ public class Index {
 			int file1termId = bf1.readInt();
 			int file2termId = bf2.readInt();
 			while(file1current < file1size && file2current < file2size){
+				if(file1termId == 9)
+					System.out.println("file1 found 9");
+				if(file1termId == 9)
+					System.out.println("file2 found 9");
 				if(file1termId < file2termId){
 					int termFreq = bf1.readInt();
 					ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
@@ -329,38 +336,69 @@ public class Index {
 				else{ //case: same term ID
 					int termFreq1 = bf1.readInt();
 					int termFreq2 = bf2.readInt();
-					ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq1+termFreq2)*4);
-					termBuffer.putInt(file2termId);
-					System.out.println(termFreq1+termFreq2);
-					termBuffer.putInt(termFreq1+termFreq2);
+					//ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq1+termFreq2)*4);
+					//termBuffer.putInt(file2termId);
+					System.out.print(termFreq1+termFreq2+"=>");
+					//termBuffer.putInt(termFreq1+termFreq2);
 					file1current += 8 + 4 * termFreq1;
 					file2current += 8 + 4 * termFreq2;
+					ArrayList<Integer> docIds = new ArrayList<Integer>();
 					//merge doc ID
 					int termDocId1 = bf1.readInt();
 					int termDocId2 = bf2.readInt();
 					while(termFreq1 > 0 && termFreq2 > 0){
-						if(termDocId1 <= termDocId2){
-							termBuffer.putInt(termDocId1);
-							termDocId1 = bf1.readInt();
+						if(termDocId1 < termDocId2){
+							docIds.add(termDocId1);
 							termFreq1--;
+							if(termFreq1 == 0)
+								break;
+							termDocId1 = bf1.readInt();
+						}
+						else if(termDocId1 > termDocId2){
+							docIds.add(termDocId2);
+							termFreq2--;
+							if(termFreq2 == 0)
+								break;
+							termDocId2 = bf1.readInt();
 						}
 						else{
-							termBuffer.putInt(termDocId2);
-							termDocId2 = bf1.readInt();
+							docIds.add(termDocId1);
+							termFreq1--;
 							termFreq2--;
+							if(termFreq1 == 0 || termFreq2 == 0)
+								break;
+							termDocId1 = bf1.readInt();
+							termDocId2 = bf1.readInt();
 						}
 					}
 					while(termFreq1 > 0){
-						termBuffer.putInt(termDocId1);
-						termDocId1 = bf1.readInt();
+						if(!docIds.contains(termDocId1))
+							docIds.add(termDocId1);
 						termFreq1--;
+						if(termFreq1 == 0)
+							break;
+						termDocId1 = bf1.readInt();
 					}
 					while(termFreq2 > 0){
-						termBuffer.putInt(termDocId2);
-						termDocId2 = bf2.readInt();
+						if(!docIds.contains(termDocId2))
+							docIds.add(termDocId2);
 						termFreq2--;
+						if(termFreq2 == 0)
+							break;
+						termDocId2 = bf2.readInt();
 					}
-					addTermAndFreqToPostingDict(file1termId, termFreq1+termFreq2);
+					addTermAndFreqToPostingDict(file1termId, docIds.size());
+					System.out.println(docIds.size());
+					ByteBuffer termBuffer = ByteBuffer.allocate((2+docIds.size())*4);
+					termBuffer.putInt(file2termId);
+					System.out.print(file2termId+" ");
+					termBuffer.putInt(docIds.size());
+					System.out.print(docIds.size()+":");
+					for(int i=0;i<docIds.size();i++){
+						termBuffer.putInt(docIds.get(i));
+						System.out.print(docIds.get(i)+" ");
+					}
+					System.out.println();
 					termBuffer.flip();
 					mfc.write(termBuffer);
 					termBuffer.clear();
@@ -371,6 +409,7 @@ public class Index {
 				}
 			}
 			while(file1current < file1size){
+				file1termId = bf1.readInt();
 				int termFreq = bf1.readInt();
 				ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
 				termBuffer.putInt(file1termId);
@@ -386,9 +425,10 @@ public class Index {
 				termBuffer.clear();
 				if(file1current >= file1size)
 					break;
-				file1termId = bf1.readInt();
+				//file1termId = bf1.readInt();
 			}
 			while(file2current < file2size){
+				file2termId = bf2.readInt();
 				int termFreq = bf2.readInt();
 				ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
 				termBuffer.putInt(file2termId);
@@ -404,7 +444,7 @@ public class Index {
 				termBuffer.clear();
 				if(file2current >= file2size)
 					break;
-				file2termId = bf2.readInt();
+				//file2termId = bf2.readInt();
 			}
 
 			
