@@ -359,7 +359,7 @@ public class Index {
 							termFreq2--;
 							if(termFreq2 == 0)
 								break;
-							termDocId2 = bf1.readInt();
+							termDocId2 = bf2.readInt();
 						}
 						else{
 							docIds.add(termDocId1);
@@ -368,7 +368,7 @@ public class Index {
 							if(termFreq1 == 0 || termFreq2 == 0)
 								break;
 							termDocId1 = bf1.readInt();
-							termDocId2 = bf1.readInt();
+							termDocId2 = bf2.readInt();
 						}
 					}
 					while(termFreq1 > 0){
@@ -409,6 +409,7 @@ public class Index {
 				}
 			}
 			while(file1current < file1size){
+				System.out.println("end of 2nd file");
 				file1termId = bf1.readInt();
 				int termFreq = bf1.readInt();
 				ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
@@ -428,6 +429,7 @@ public class Index {
 				//file1termId = bf1.readInt();
 			}
 			while(file2current < file2size){
+				System.out.println("end of 1st file");
 				file2termId = bf2.readInt();
 				int termFreq = bf2.readInt();
 				ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
