@@ -44,12 +44,12 @@ public class BasicIndex implements BaseIndex {
 		 * TODO: Your code here Write the given postings list to the given file.
 		 */
 		try {
-			fc.position(fc.size());
-			List<Integer> pList = p.getList();
-			ByteBuffer postingBytes = ByteBuffer.allocate((2+pList.size())*4);
+			//fc.position(fc.size());
+			//List<Integer> pList = p.getList();
+			ByteBuffer postingBytes = ByteBuffer.allocate((2+p.getList().size())*4);
 			postingBytes.putInt(p.getTermId());
-			postingBytes.putInt(pList.size());
-			for(Integer docId:pList){
+			postingBytes.putInt(p.getList().size());
+			for(Integer docId:p.getList()){
 				postingBytes.putInt(docId);
 			}
 			postingBytes.flip();

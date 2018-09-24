@@ -36,4 +36,8 @@ public class PostingList {
 	public int getPostingID(int num) {
 		return this.postings.get(num);
 	}
+	
+	public void addDocId(int docId){
+		postings.add(docId);
+	}
 }

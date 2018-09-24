@@ -197,17 +197,17 @@ public class Index {
 						 *       For each term, build up a list of
 						 *       documents in which the term occurs
 						 */
-						//System.out.println("doc: "+docId+"term: "+ token);
+						System.out.println("doc: "+docId+"term: "+ token);
 						if(termDict.containsKey(token)){
 							int termId = termDict.get(token);
-							//System.out.println("termID:"+termId);
+							System.out.println("termID:"+termId);
 							if(!blockPostingLists.contains(termId)){
 								List<Integer> tempList = new ArrayList<Integer>();
 								tempList.add(docId);
 								blockPostingLists.add(new PostingList(termId, tempList));
 							}
 							else
-								blockPostingLists.get(termId).getList().add(docId);
+								blockPostingLists.get(termId).addDocId(docId);
 						}
 						else{
 							termDict.put(token, ++wordIdCounter);
@@ -279,6 +279,9 @@ public class Index {
 			 *       the two blocks (based on term ID, perhaps?).
 			 *       
 			 */
+			
+			FileChannel mfc = mf.getChannel();
+			
 			System.out.println("file working: "+combfile.getName());
 			long file1size = bf1.length();
 			long file2size = bf2.length();
@@ -298,7 +301,9 @@ public class Index {
 					}
 					addTermAndFreqToPostingDict(file1termId, termFreq);
 					termBuffer.flip();
-					mf.write(termBuffer.array());
+					//mf.write(termBuffer.array());
+					mfc.write(termBuffer);
+					termBuffer.clear();
 					if(file1current >= file1size)
 						break;
 					file1termId = bf1.readInt();
@@ -315,7 +320,8 @@ public class Index {
 					}
 					addTermAndFreqToPostingDict(file2termId, termFreq);
 					termBuffer.flip();
-					mf.write(termBuffer.array());
+					mfc.write(termBuffer);
+					termBuffer.clear();
 					if(file2current >= file2size)
 						break;
 					file2termId = bf2.readInt();
@@ -325,6 +331,7 @@ public class Index {
 					int termFreq2 = bf2.readInt();
 					ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq1+termFreq2)*4);
 					termBuffer.putInt(file2termId);
+					System.out.println(termFreq1+termFreq2);
 					termBuffer.putInt(termFreq1+termFreq2);
 					file1current += 8 + 4 * termFreq1;
 					file2current += 8 + 4 * termFreq2;
@@ -355,7 +362,8 @@ public class Index {
 					}
 					addTermAndFreqToPostingDict(file1termId, termFreq1+termFreq2);
 					termBuffer.flip();
-					mf.write(termBuffer.array());
+					mfc.write(termBuffer);
+					termBuffer.clear();
 					if(file1current >= file1size || file2current >= file2size)
 						break;
 					file1termId = bf1.readInt();
@@ -374,7 +382,8 @@ public class Index {
 				}
 				addTermAndFreqToPostingDict(file1termId, termFreq);
 				termBuffer.flip();
-				mf.write(termBuffer.array());
+				mfc.write(termBuffer);
+				termBuffer.clear();
 				if(file1current >= file1size)
 					break;
 				file1termId = bf1.readInt();
@@ -391,7 +400,8 @@ public class Index {
 				}
 				addTermAndFreqToPostingDict(file1termId, termFreq);
 				termBuffer.flip();
-				mf.write(termBuffer.array());
+				mfc.write(termBuffer);
+				termBuffer.clear();
 				if(file2current >= file2size)
 					break;
 				file2termId = bf2.readInt();
