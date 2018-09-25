@@ -52,6 +52,7 @@ public class Query {
 		//Step 1: Find the corresponding postingList is posting.dict that has the same termID as termId
 		
 			//Find the term index position from the corresponding termID in posDict
+			
 			Long positionInCorpus = null;	//Term position in the corpus.index
 			Set<Integer> posDictKeys = posDict.keySet();
 			for(Integer termIDkey : posDictKeys) {
@@ -71,7 +72,7 @@ public class Query {
 		
 		
 		//Step 2: From the correspodning positingList, use termPos to set FileChannel's position in corpus.index
-		fc.position(positionInCorpus);
+		fc.position(posDict.get(termId));
 		
 		
 		//Step 3: From corpus.index, read the <termID, DocFreq, {DocIDs}> tuple into the ByteBuffer (size = 4+4+(4*DocFreq)}
@@ -100,7 +101,8 @@ public class Query {
 		PostingList newPosting = new PostingList(termId, docIDs);
 		
 		//Step 5: Return the instantiated PostingList to user
-		return newPosting;
+		fc.position(posDict.get(termId));
+		return index.readPosting(fc);
 	}
 	
 	
@@ -167,35 +169,34 @@ public class Query {
 		 * DONE by Earth
 		 */
 		List<Integer> result = new ArrayList<Integer>();
-		String[] tokens = query.split(" ");	//Split the input query into tokens using white space as seperator
+		
+		String[] tokens = query.split("\\s+");	//Split the input query into tokens using white space as seperator
 		
 		//Step 1: Find the term ID of the tokens 
 		
-		ArrayList<Integer> tokensTermID = new ArrayList<Integer>(); //For storing the termID that will be used to retrieve the right postingList
+		List<PostingList> tokensTermID = new ArrayList<PostingList>(); //For storing the termID that will be used to retrieve the right postingList
 		
 		Set<String> termDictKeys = termDict.keySet();	//Get the set of keys from termDict Map
 
 		for(String token : tokens) {
-				for(String termDictKey : termDictKeys) {
-					if(token.equals(termDictKey)) {
-						tokensTermID.add(termDict.get(termDictKey));	//Add the termID of the token into the tokensTermID
-					}
-				}
+			if(termDict.containsKey(token)) {
+				tokensTermID.add(readPosting(indexFile.getChannel(), termDict.get(token)));	//Add the termID of the token into the tokensTermID
+			}
 		}
 		
 		//Step 1.5: Check first if all the terms have corresponding termID
 		if(tokensTermID.size() < tokens.length) {
-			System.err.print("Error: One of the search queries doesn't exist.");
+			System.err.print("Error: One of the search queries doesn't exist.\n");
 		}
 		
 		//Step 2: Retrieve the posting lists of the tokens using termID
 		List<PostingList> postingLists = new ArrayList<PostingList>(); // Set that store the postingList of the term
 		
 		
-		for(Integer tokenID : tokensTermID) {
+		/*for(Integer tokenID : tokensTermID) {
 			FileChannel fc = indexFile.getChannel();
 			postingLists.add(this.readPosting(fc, tokenID));
-		}
+		}*/
 		
 		//Step 3: Intersect the retrieved postingLists using the intersect Helper method.
 		
@@ -212,8 +213,17 @@ public class Query {
 			k++;
 		}
 	
-		return result;
-		
+		if(tokensTermID.size() == 0) {
+			return null;
+		}
+		else {
+			List<Integer> Out = tokensTermID.get(0).getList();
+			
+			for(int i=1; i<tokensTermID.size(); i++) {
+					Out = intersect(tokensTermID.get(i).getList(), Out);
+			}
+			return Out;
+		}
 	}
 	
 	//Helper method: Posting Lists Boolean Intersection by Earth
@@ -227,9 +237,9 @@ public class Query {
 	 * 
 	 * Result: 2 5 10
 	 **/
-public ArrayList<Integer> intersect(List<Integer> postingList, List<Integer> postingList2) {
+public List<Integer> intersect(List<Integer> postingList, List<Integer> postingList2) {
 		
-		ArrayList<Integer> intersection = new ArrayList<Integer>();
+		List<Integer> intersection = new ArrayList<Integer>();
 		
 		int pointer1 = 0;
 		int pointer2 = 0;
@@ -239,15 +249,14 @@ public ArrayList<Integer> intersect(List<Integer> postingList, List<Integer> pos
 				intersection.add(postingList.get(pointer1));
 				pointer1++;
 				pointer2++;
-			} else {
-				if(postingList.get(pointer1) < postingList2.get(pointer2)) {
-					pointer1++;
-				} else {
-					pointer2++;
-				}
+			} 
+			else if(postingList.get(pointer1) < postingList2.get(pointer2)){
+				pointer1++;
+			}
+			else {
+				pointer2++;
 			}
 		}
-		
 		return intersection;
 	}
 	
@@ -273,9 +282,9 @@ public ArrayList<Integer> intersect(List<Integer> postingList, List<Integer> pos
     	
     	//by benn ja (to output the query)
     	
-    	if(res.size() == 0) { return "No results found";}
+    	if(res == null) { return "No results found\n";}
     	for(Integer i:res) {
-    		outQ.append(docDict.get(i));
+    		outQ.append(docDict.get(i)+"\n");
     	}
     	System.out.println(outQ);
     	return outQ.toString();
