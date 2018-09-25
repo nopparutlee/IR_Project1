@@ -97,11 +97,11 @@ public class Index {
     	//System.out.println("size:"+blockQueue.size());
     	if(blockQueue.size() != 0)
     		return;
-    	//System.out.println("termID:"+termId+" added with "+freq+"frequency");
+    	System.out.println("termID:"+termId+" added with "+freq+"frequency");
     	Long byteOffset = (long) (totalFreq * 4);
     	Pair<Long, Integer> temp = new Pair<Long, Integer>(byteOffset, freq);
     	postingDict.put(termId, temp);
-    	totalFreq += freq;
+    	totalFreq += 2 + freq;
     }
    
 	
@@ -442,7 +442,7 @@ public class Index {
 					int termDocId = bf2.readInt();
 					termBuffer.putInt(termDocId);
 				}
-				addTermAndFreqToPostingDict(file1termId, termFreq);
+				addTermAndFreqToPostingDict(file2termId, termFreq);
 				termBuffer.flip();
 				mfc.write(termBuffer);
 				termBuffer.clear();
