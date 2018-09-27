@@ -121,7 +121,6 @@ public class Query {
 		File inputdir = new File(indexDirname);
 		if (!inputdir.exists() || !inputdir.isDirectory()) {
 			System.err.println("Invalid index directory: " + indexDirname);
-			//return;
 		}
 		
 		/* Index file */

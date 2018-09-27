@@ -69,7 +69,6 @@ public class Index {
 		 */
 		
 		index.writePosting(fc, posting);
-		//postingDict.put(posting.getTermId(), new Pair<Long, Integer>(fc.position(), posting.getList().size()));
 	}
 	
 
@@ -94,7 +93,6 @@ public class Index {
      * 			freq frequency of document containing that term
      */
     private static void addTermAndFreqToPostingDict(int termId, int freq){
-    	//System.out.println("size:"+blockQueue.size());
     	if(blockQueue.size() != 0)
     		return;
     	System.out.println("termID:"+termId+" added with "+freq+"frequency");
@@ -244,15 +242,6 @@ public class Index {
 				writePosting(channel, posting);
 			}
 			
-			
-			/*by Ben
-			 * ByteBuffer buffer = ByteBuffer.allocate(2048);*/
-			
-			
-			
-			
-			
-			
 			bfc.close();
 		}
 
@@ -338,10 +327,7 @@ public class Index {
 				else{ //case: same term ID
 					int termFreq1 = bf1.readInt();
 					int termFreq2 = bf2.readInt();
-					//ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq1+termFreq2)*4);
-					//termBuffer.putInt(file2termId);
 					System.out.print(termFreq1+termFreq2+"=>");
-					//termBuffer.putInt(termFreq1+termFreq2);
 					file1current += 8 + 4 * termFreq1;
 					file2current += 8 + 4 * termFreq2;
 					ArrayList<Integer> docIds = new ArrayList<Integer>();
@@ -428,7 +414,6 @@ public class Index {
 				termBuffer.clear();
 				if(file1current >= file1size)
 					break;
-				//file1termId = bf1.readInt();
 			}
 			while(file2current < file2size){
 				System.out.println("end of 1st file");
@@ -448,7 +433,6 @@ public class Index {
 				termBuffer.clear();
 				if(file2current >= file2size)
 					break;
-				//file2termId = bf2.readInt();
 			}
 
 			
