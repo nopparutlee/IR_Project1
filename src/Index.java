@@ -200,10 +200,8 @@ public class Index {
 						 *       For each term, build up a list of
 						 *       documents in which the term occurs
 						 */
-						System.out.println("doc: "+docId+"term: "+ token);
 						if(termDict.containsKey(token)){
 							int termId = termDict.get(token);
-							System.out.println("termID:"+termId);
 							if(!blockPostingLists.containsKey(termId)){
 								List<Integer> tempList = new ArrayList<Integer>();
 								tempList.add(docId);
@@ -279,30 +277,23 @@ public class Index {
 			System.out.println("file working: "+combfile.getName());
 			long file1size = bf1.length();
 			long file2size = bf2.length();
-			long file1current = 0, file2current = 0;
 			int file1termId = bf1.readInt();
 			int file2termId = bf2.readInt();
-			while(file1current < file1size && file2current < file2size){
-				if(file1termId == 9)
-					System.out.println("file1 found 9");
-				if(file1termId == 9)
-					System.out.println("file2 found 9");
+			while(bf1.getFilePointer() < file1size && bf2.getFilePointer() < file2size){
 				if(file1termId < file2termId){
 					int termFreq = bf1.readInt();
 					ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
 					termBuffer.putInt(file1termId);
 					termBuffer.putInt(termFreq);
-					file1current += 8 + 4 * termFreq;
 					for(int i=0;i<termFreq;i++){
 						int termDocId = bf1.readInt();
 						termBuffer.putInt(termDocId);
 					}
 					addTermAndFreqToPostingDict(file1termId, termFreq);
 					termBuffer.flip();
-					//mf.write(termBuffer.array());
 					mfc.write(termBuffer);
 					termBuffer.clear();
-					if(file1current >= file1size)
+					if(bf1.getFilePointer() >= file1size)
 						break;
 					file1termId = bf1.readInt();
 				}
@@ -311,7 +302,6 @@ public class Index {
 					ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
 					termBuffer.putInt(file2termId);
 					termBuffer.putInt(termFreq);
-					file2current += 8 + 4 * termFreq;
 					for(int i=0;i<termFreq;i++){
 						int termDocId = bf2.readInt();
 						termBuffer.putInt(termDocId);
@@ -320,90 +310,50 @@ public class Index {
 					termBuffer.flip();
 					mfc.write(termBuffer);
 					termBuffer.clear();
-					if(file2current >= file2size)
+					if(bf2.getFilePointer() >= file2size)
 						break;
 					file2termId = bf2.readInt();
 				}
 				else{ //case: same term ID
 					int termFreq1 = bf1.readInt();
 					int termFreq2 = bf2.readInt();
-					System.out.print(termFreq1+termFreq2+"=>");
-					file1current += 8 + 4 * termFreq1;
-					file2current += 8 + 4 * termFreq2;
-					ArrayList<Integer> docIds = new ArrayList<Integer>();
+					Set<Integer> termdocIds = new TreeSet<Integer>();
 					//merge doc ID
-					int termDocId1 = bf1.readInt();
-					int termDocId2 = bf2.readInt();
-					while(termFreq1 > 0 && termFreq2 > 0){
-						if(termDocId1 < termDocId2){
-							docIds.add(termDocId1);
-							termFreq1--;
-							if(termFreq1 == 0)
-								break;
-							termDocId1 = bf1.readInt();
-						}
-						else if(termDocId1 > termDocId2){
-							docIds.add(termDocId2);
-							termFreq2--;
-							if(termFreq2 == 0)
-								break;
-							termDocId2 = bf2.readInt();
-						}
-						else{
-							docIds.add(termDocId1);
-							termFreq1--;
-							termFreq2--;
-							if(termFreq1 == 0 || termFreq2 == 0)
-								break;
-							termDocId1 = bf1.readInt();
-							termDocId2 = bf2.readInt();
-						}
+					while(termFreq1-- > 0){
+						termdocIds.add(bf1.readInt());
 					}
-					while(termFreq1 > 0){
-						if(!docIds.contains(termDocId1))
-							docIds.add(termDocId1);
-						termFreq1--;
-						if(termFreq1 == 0)
-							break;
-						termDocId1 = bf1.readInt();
+					while(termFreq2-- > 0){
+						termdocIds.add(bf2.readInt());
 					}
-					while(termFreq2 > 0){
-						if(!docIds.contains(termDocId2))
-							docIds.add(termDocId2);
-						termFreq2--;
-						if(termFreq2 == 0)
-							break;
-						termDocId2 = bf2.readInt();
-					}
-					addTermAndFreqToPostingDict(file1termId, docIds.size());
-					System.out.println(docIds.size());
-					ByteBuffer termBuffer = ByteBuffer.allocate((2+docIds.size())*4);
+					addTermAndFreqToPostingDict(file1termId, termdocIds.size());
+					ByteBuffer termBuffer = ByteBuffer.allocate((2+termdocIds.size())*4);
 					termBuffer.putInt(file2termId);
-					System.out.print(file2termId+" ");
-					termBuffer.putInt(docIds.size());
-					System.out.print(docIds.size()+":");
-					for(int i=0;i<docIds.size();i++){
-						termBuffer.putInt(docIds.get(i));
-						System.out.print(docIds.get(i)+" ");
+					termBuffer.putInt(termdocIds.size());
+					for(Integer docId: termdocIds){
+						termBuffer.putInt(docId);
 					}
-					System.out.println();
 					termBuffer.flip();
 					mfc.write(termBuffer);
 					termBuffer.clear();
-					if(file1current >= file1size || file2current >= file2size)
+					if(bf1.getFilePointer() >= file1size && bf2.getFilePointer() >= file2size)
 						break;
+					else if(bf1.getFilePointer() >= file1size){
+						file2termId = bf2.readInt();
+						break;
+					}
+					else if(bf2.getFilePointer() >= file2size){
+						file1termId = bf1.readInt();
+						break;
+					}
 					file1termId = bf1.readInt();
 					file2termId = bf2.readInt();
 				}
 			}
-			while(file1current < file1size){
-				System.out.println("end of 2nd file");
-				file1termId = bf1.readInt();
+			while(bf1.getFilePointer() < file1size){
 				int termFreq = bf1.readInt();
 				ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
 				termBuffer.putInt(file1termId);
 				termBuffer.putInt(termFreq);
-				file1current += 8 + 4 * termFreq;
 				for(int i=0;i<termFreq;i++){
 					int termDocId = bf1.readInt();
 					termBuffer.putInt(termDocId);
@@ -412,17 +362,15 @@ public class Index {
 				termBuffer.flip();
 				mfc.write(termBuffer);
 				termBuffer.clear();
-				if(file1current >= file1size)
+				if(bf1.getFilePointer() >= file1size)
 					break;
+				file1termId = bf1.readInt();
 			}
-			while(file2current < file2size){
-				System.out.println("end of 1st file");
-				file2termId = bf2.readInt();
+			while(bf2.getFilePointer() < file2size){
 				int termFreq = bf2.readInt();
 				ByteBuffer termBuffer = ByteBuffer.allocate((2+termFreq)*4);
 				termBuffer.putInt(file2termId);
 				termBuffer.putInt(termFreq);
-				file2current += 8 + 4 * termFreq;
 				for(int i=0;i<termFreq;i++){
 					int termDocId = bf2.readInt();
 					termBuffer.putInt(termDocId);
@@ -431,8 +379,9 @@ public class Index {
 				termBuffer.flip();
 				mfc.write(termBuffer);
 				termBuffer.clear();
-				if(file2current >= file2size)
+				if(bf2.getFilePointer() >= file2size)
 					break;
+				file2termId = bf2.readInt();
 			}
 
 			
